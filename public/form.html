@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steam Library Comparison</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+<h1>Compare Steam Libraries</h1>
+    <h1>Find games you and your friends all own!</h1>
+<form id="compare-form">
+    <div class="form-group">
+        <input type="text" class="steam-input" placeholder="Steam ID or nickname">
+    </div>
+    <div class="form-group">
+        <input type="text" class="steam-input" placeholder="Steam ID or nickname">
+    </div>
+    <div class="form-group">
+        <input type="text" class="steam-input" placeholder="Steam ID or nickname (optional)">
+    </div>
+    <div class="form-group">
+        <input type="text" class="steam-input" placeholder="Steam ID or nickname (optional)">
+    </div>
+    <div class="form-group">
+        <input type="text" class="steam-input" placeholder="Steam ID or nickname (optional)">
+    </div>
+    <button type="submit">Compare Libraries</button>
+</form>
+
+<div id="results"></div>
+</div>
+<script>
+    const form = document.getElementById('compare-form');
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const userInputs = Array.from(document.getElementsByClassName('steam-input'))
+            .map((input) => input.value)
+            .filter((value) => value);
+
+        try {
+            const response = await fetch('/compare-libraries', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ userInputs }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const resultElement = document.getElementById('results');
+                resultElement.innerHTML = '';
+
+                if (data.commonGames.length > 0) {
+                    const list = document.createElement('ul');
+                    data.commonGames.forEach((game) => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = `${game.name}`;
+                        list.appendChild(listItem);
+                    });
+                    resultElement.appendChild(list);
+                } else {
+                    resultElement.textContent = 'No common games found.';
+                }
+            } else {
+                const error = await response.json();
+                alert(`Error: ${error.error}`);
+            }
+        } catch (error) {
+            console.error('Error:', error.message);
+            alert('An error occurred while comparing libraries. Please try again later.');
+        }
+    });
+</script>
+</body>
+</html>
